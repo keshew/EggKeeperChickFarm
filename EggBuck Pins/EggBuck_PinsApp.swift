@@ -32,7 +32,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, AppsFlyerLibDelegate, Messag
 
         let userInfo = response.notification.request.content.userInfo
 
-        // Проверяем наличие url в payload уведомления
         if let data = userInfo["data"] as? [String: Any],
            let urlString = data["url"] as? String,
            !urlString.isEmpty {
