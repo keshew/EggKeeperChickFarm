@@ -90,6 +90,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, AppsFlyerLibDelegate, Messag
     }
     
     func onConversionDataFail(_ error: Error) {
+        NotificationCenter.default.post(name: .datraRecieved, object: nil)
     }
     
     func onConversionDataSuccess(_ conversionData: [AnyHashable: Any]) {
@@ -121,8 +122,6 @@ class AppDelegate: NSObject, UIApplicationDelegate, AppsFlyerLibDelegate, Messag
                 print("We have orgianic(")
             }
         }
-        
-      
     }
     
     deinit {

@@ -53,6 +53,7 @@ struct NotificationView: View {
                             
                             Button(action:{
                                 presentationMode.wrappedValue.dismiss()
+                                NotificationCenter.default.post(name: .notificationPermissionResult, object: nil, userInfo: ["granted": true])
                             }) {
                                 Text("Skip")
                                     .font(.custom("PassionOne-Regular", size: 18))
@@ -98,6 +99,7 @@ struct NotificationView: View {
                             
                             Button(action:{
                                 presentationMode.wrappedValue.dismiss()
+                                NotificationCenter.default.post(name: .notificationPermissionResult, object: nil, userInfo: ["granted": true])
                             }) {
                                 Text("Skip")
                                     .font(.custom("PassionOne-Regular", size: 18))
