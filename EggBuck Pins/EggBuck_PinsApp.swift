@@ -29,9 +29,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, AppsFlyerLibDelegate, Messag
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 didReceive response: UNNotificationResponse,
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
-
+        
         let userInfo = response.notification.request.content.userInfo
-
+        
         if let data = userInfo["data"] as? [String: Any],
            let urlString = data["url"] as? String,
            !urlString.isEmpty {
@@ -105,6 +105,8 @@ class AppDelegate: NSObject, UIApplicationDelegate, AppsFlyerLibDelegate, Messag
             print("Failed to serialize conversionData: \(error)")
         }
         
+        NotificationCenter.default.post(name: .datraRecieved, object: nil, userInfo: conversionData)
+        
         if let status = conversionData["af_status"] as? String, status == "Organic" {
             if !didRequestConversionDataAgain {
                 didRequestConversionDataAgain = true
@@ -113,7 +115,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, AppsFlyerLibDelegate, Messag
                     do {
                         let jsonData = try JSONSerialization.data(withJSONObject: conversionData, options: [])
                         UserDefaults.standard.set(jsonData, forKey: "conversion_data")
-                        NotificationCenter.default.post(name: .datraRecieved, object: nil, userInfo: conversionData)
+                        
                     } catch {
                         print("Failed to serialize conversionData: \(error)")
                     }
