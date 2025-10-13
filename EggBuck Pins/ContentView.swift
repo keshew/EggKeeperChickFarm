@@ -1163,7 +1163,7 @@ extension LoadingView {
             return
         }
 
-        guard let conversionData = try? JSONSerialization.jsonObject(with: conversionDataJson) as? [String: Any] else {
+        guard let conversionDataRaw = try? JSONSerialization.jsonObject(with: conversionDataJson) as? [String: Any?] else {
             print("Failed to deserialize conversion data")
             DispatchQueue.main.async {
                 UserDefaults.standard.set(true, forKey: configNoMoreRequestsKey)
@@ -1173,13 +1173,16 @@ extension LoadingView {
             return
         }
 
-        var requestBody: [String: Any] = [:]
-        // Оборачиваем данные в ключ "appsflyer" аналогично sendAppsFlyerData
-        requestBody["appsflyer"] = conversionData
+        var sanitizedConversionData = [String: Any]()
+        for (key, value) in conversionDataRaw {
+            if let value = value {
+                sanitizedConversionData[key] = value
+            } else {
+                sanitizedConversionData[key] = NSNull()
+            }
+        }
 
-        // Не добавляем Facebook
-
-        guard JSONSerialization.isValidJSONObject(requestBody) else {
+        guard JSONSerialization.isValidJSONObject(sanitizedConversionData) else {
             print("Conversion data is not a valid JSON object")
             DispatchQueue.main.async {
                 UserDefaults.standard.set(true, forKey: configNoMoreRequestsKey)
@@ -1190,7 +1193,7 @@ extension LoadingView {
         }
 
         do {
-            let jsonData = try JSONSerialization.data(withJSONObject: requestBody, options: [])
+            let jsonData = try JSONSerialization.data(withJSONObject: sanitizedConversionData, options: [])
             let url = URL(string: "https://eggkeeperchickfarm.com/config.php")!
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
@@ -1246,9 +1249,7 @@ extension LoadingView {
                     }
                 }
             }
-
             task.resume()
-
         } catch {
             print("Failed to serialize request body: \(error)")
             DispatchQueue.main.async {
@@ -1258,7 +1259,6 @@ extension LoadingView {
             }
         }
     }
-
     
     func handleConfigResponse(_ jsonResponse: [String: Any]) {
         if let ok = jsonResponse["ok"] as? Bool, ok,
@@ -1279,7 +1279,7 @@ extension LoadingView {
             finishLoadingWithoutWebview()
         }
     }
-
+    
     func finishLoadingWithoutWebview() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             isMain = true
