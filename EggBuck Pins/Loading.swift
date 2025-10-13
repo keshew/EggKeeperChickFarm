@@ -21,6 +21,7 @@ struct LoadingView: View {
     @State  var isRequestingConfig = false
     @StateObject  var networkMonitor = NetworkMonitor.shared
     @State var isInet = false
+    @State private var hasHandledConversion = false
     
     var isPortrait: Bool {
         verticalSizeClass == .regular && horizontalSizeClass == .compact
@@ -86,14 +87,22 @@ struct LoadingView: View {
         .fullScreenCover(item: $url) { item in
             Detail(urlString: item.urlString)
         }
-        .onChange(of: scenePhase) { newPhase in
-             if newPhase == .active {
-                 if !hasCheckedAuthorization {
-                     checkNotificationAuthorization()
-                     hasCheckedAuthorization = true
-                 }
-             }
-         }
+        .onReceive(NotificationCenter.default.publisher(for: .datraRecieved)) { notification in
+            DispatchQueue.main.async {
+                if !hasHandledConversion {
+                    let isOrganic = UserDefaults.standard.bool(forKey: "is_organic_conversion")
+                    if isOrganic {
+                        isMain = true
+                    } else {
+                        checkNotificationAuthorization()
+                    }
+                    hasHandledConversion = true
+                } else {
+                    print("Conversion event ignored due to recent handling")
+                }
+            }
+        }
+        
         .onReceive(NotificationCenter.default.publisher(for: .notificationPermissionResult)) { notification in
             sendConfigRequest()
         }

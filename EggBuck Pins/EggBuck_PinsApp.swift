@@ -105,6 +105,13 @@ class AppDelegate: NSObject, UIApplicationDelegate, AppsFlyerLibDelegate, Messag
             print("Failed to serialize conversionData: \(error)")
         }
         
+        if let status = conversionData["af_status"] as? String {
+            let isOrganic = (status == "Organic")
+            UserDefaults.standard.set(isOrganic, forKey: "is_organic_conversion")
+        } else {
+            UserDefaults.standard.set(false, forKey: "is_organic_conversion")
+        }
+        
         NotificationCenter.default.post(name: .datraRecieved, object: nil, userInfo: conversionData)
         
         if let status = conversionData["af_status"] as? String, status == "Organic" {
@@ -115,13 +122,12 @@ class AppDelegate: NSObject, UIApplicationDelegate, AppsFlyerLibDelegate, Messag
                     do {
                         let jsonData = try JSONSerialization.data(withJSONObject: conversionData, options: [])
                         UserDefaults.standard.set(jsonData, forKey: "conversion_data")
-                        
                     } catch {
                         print("Failed to serialize conversionData: \(error)")
                     }
                 }
             } else {
-                print("We have orgianic(")
+                print("We have organic conversion")
             }
         }
     }
