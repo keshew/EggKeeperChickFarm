@@ -6,6 +6,8 @@ struct URLModel: Identifiable, Equatable {
 }
 
 struct LoadingView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var hasCheckedAuthorization = false
     @State  var url: URLModel? = nil
     @Environment(\.verticalSizeClass) var verticalSizeClass
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
@@ -84,11 +86,14 @@ struct LoadingView: View {
         .fullScreenCover(item: $url) { item in
             Detail(urlString: item.urlString)
         }
-        .onReceive(NotificationCenter.default.publisher(for: .datraRecieved)) { notification in
-            DispatchQueue.main.async {
-                checkNotificationAuthorization()
-            }
-        }
+        .onChange(of: scenePhase) { newPhase in
+             if newPhase == .active {
+                 if !hasCheckedAuthorization {
+                     checkNotificationAuthorization()
+                     hasCheckedAuthorization = true
+                 }
+             }
+         }
         .onReceive(NotificationCenter.default.publisher(for: .notificationPermissionResult)) { notification in
             sendConfigRequest()
         }

@@ -1302,6 +1302,7 @@ struct StatsView: View {
                     eggStats
                     expenseStats
                     badgesSection
+                    privacyPolicySection
                 }
                 .listStyle(.grouped)
                 .scrollContentBackground(.hidden)
@@ -1398,6 +1399,30 @@ struct StatsView: View {
                     .animation(.spring(response: 0.4, dampingFraction: 0.6), value: badge.achieved)
                 }
             }
+        }
+    }
+    
+    var privacyPolicySection: some View {
+        Section(header: Text("Privacy Policy").font(.system(.headline, design: .rounded)).foregroundColor(.eggYellow)) {
+            Button(action: {
+                if let url = URL(string: "https://eggkeeperchickfarm.com/privacy-policy.html") {
+                    UIApplication.shared.open(url)
+                }
+            }) {
+                HStack {
+                    Image(systemName: "shield")
+                        .foregroundColor(.eggYellow)
+                        .font(.system(size: 24))
+                    Text("Privacy Policy")
+                        .foregroundColor(.primary)
+                        .font(.system(.subheadline, design: .rounded))
+                    Spacer()
+                    Image(systemName: "arrow.up.right.square")
+                        .foregroundColor(.eggYellow)
+                }
+                .padding(.vertical, 4)
+            }
+            .buttonStyle(PlainButtonStyle())
         }
     }
 }
