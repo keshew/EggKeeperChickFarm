@@ -45,8 +45,8 @@ class AppDelegate: NSObject, UIApplicationDelegate, AppsFlyerLibDelegate, Messag
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         FirebaseApp.configure()
+        UNUserNotificationCenter.current().delegate = self
         Messaging.messaging().delegate = self
-        
         AppsFlyerLib.shared().appleAppID = "6753350894"
         AppsFlyerLib.shared().appsFlyerDevKey = "MYh3FDzzuema6vnnu8cZMW"
         AppsFlyerLib.shared().delegate = self
@@ -54,7 +54,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, AppsFlyerLibDelegate, Messag
         AppsFlyerLib.shared().waitForATTUserAuthorization(timeoutInterval: 60)
         NotificationCenter.default.addObserver(self, selector: #selector(dnsajkdnasda),
                                                name: UIApplication.didBecomeActiveNotification, object: nil)
-        
+        UIApplication.shared.registerForRemoteNotifications()
         return true
     }
     
@@ -71,6 +71,10 @@ class AppDelegate: NSObject, UIApplicationDelegate, AppsFlyerLibDelegate, Messag
         } else {
             UserDefaults.standard.set("null", forKey: "fcmToken")
         }
+    }
+    
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("Failed to register for remote notifications: \(error)")
     }
     
     private func idfaSave() {
@@ -90,7 +94,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, AppsFlyerLibDelegate, Messag
     }
     
     func onConversionDataFail(_ error: Error) {
-        NotificationCenter.default.post(name: .datraRecieved, object: nil)
+
     }
     
     func onConversionDataSuccess(_ conversionData: [AnyHashable: Any]) {

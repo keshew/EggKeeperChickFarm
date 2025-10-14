@@ -23,16 +23,21 @@ class CreateDetail: UIViewController, WKNavigationDelegate {
             loadCookie()
             
             await MainActor.run {
-                self.czxasd = WKWebView(frame: self.view.frame)
+                let webConfiguration = WKWebViewConfiguration()
+                webConfiguration.mediaTypesRequiringUserActionForPlayback = []
+                
+                self.czxasd = WKWebView(frame: self.view.frame, configuration: webConfiguration)
                 self.czxasd.customUserAgent = asdqw
                 self.czxasd.navigationDelegate = self
+                czxasd.scrollView.isScrollEnabled = true
+                czxasd.scrollView.pinchGestureRecognizer?.isEnabled = false
+                czxasd.scrollView.keyboardDismissMode = .interactive
                 
                 self.loadInfo(with: url)
                 
             }
         }
     }
-    
     
     func loadInfo(with url: URL) {
         czxasd.load(URLRequest(url: url))
@@ -108,19 +113,25 @@ class CreateDetail: UIViewController, WKNavigationDelegate {
             }
         }
     }
+    
+    @available(iOS 15.0, *)
+    func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin, initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType, decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+        DispatchQueue.main.async {
+            decisionHandler(.grant)
+        }
+    }
 }
 
 import SwiftUI
 @preconcurrency import WebKit
 
 extension CreateDetail: WKUIDelegate {
-    func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
-        newPopupWindow = WKWebView(frame: view.bounds, configuration: configuration)
-        newPopupWindow!.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        newPopupWindow!.navigationDelegate = self
-        newPopupWindow?.uiDelegate = self
-        view.addSubview(newPopupWindow!)
-        return newPopupWindow!
+    func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration,
+                 for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+        if navigationAction.targetFrame == nil || !(navigationAction.targetFrame?.isMainFrame ?? false) {
+            webView.load(navigationAction.request)
+        }
+        return nil
     }
     
     func webViewDidClose(_ webView: WKWebView) {
@@ -133,7 +144,7 @@ import SwiftUI
 
 struct Detail: UIViewControllerRepresentable {
     var urlString: String
-
+    
     func makeUIViewController(context: Context) -> CreateDetail {
         let viewController = CreateDetail()
         UserDefaults.standard.set(urlString, forKey: "config_url")
@@ -142,6 +153,6 @@ struct Detail: UIViewControllerRepresentable {
         }
         return viewController
     }
-
+    
     func updateUIViewController(_ uiViewController: CreateDetail, context: Context) {}
 }

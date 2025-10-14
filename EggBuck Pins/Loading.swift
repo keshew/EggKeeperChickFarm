@@ -79,13 +79,15 @@ struct LoadingView: View {
                 }
             }
         }
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                isInet = networkMonitor.isDisconnected
+        .onReceive(networkMonitor.$isDisconnected) { disconnected in
+            if disconnected {
+                isInet = true
+            } else {
             }
         }
         .fullScreenCover(item: $url) { item in
             Detail(urlString: item.urlString)
+                .ignoresSafeArea(.keyboard)
         }
         .onReceive(NotificationCenter.default.publisher(for: .datraRecieved)) { notification in
             DispatchQueue.main.async {
@@ -113,11 +115,7 @@ struct LoadingView: View {
             ContentView()
         }
         .fullScreenCover(isPresented: $isInet) {
-            if UserDefaults.standard.string(forKey: configUrlKey) != nil {
-                NoInternet()
-            } else {
-                ContentView()
-            }
+            NoInternet()
         }
     }
 }

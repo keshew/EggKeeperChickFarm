@@ -98,6 +98,7 @@ struct NotificationView: View {
                             }
                             
                             Button(action:{
+                                saveDeniedDate()
                                 presentationMode.wrappedValue.dismiss()
                                 NotificationCenter.default.post(name: .notificationPermissionResult, object: nil, userInfo: ["granted": true])
                             }) {
@@ -122,6 +123,7 @@ struct NotificationView: View {
                     if granted {
                         DispatchQueue.main.async {
                             NotificationCenter.default.post(name: .notificationPermissionResult, object: nil, userInfo: ["granted": true])
+                            UIApplication.shared.registerForRemoteNotifications()
                         }
                         presentationMode.wrappedValue.dismiss()
                     } else {
