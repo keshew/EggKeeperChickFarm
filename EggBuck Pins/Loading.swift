@@ -91,6 +91,7 @@ struct LoadingView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .datraRecieved)) { notification in
             DispatchQueue.main.async {
+                guard !isInet else { return }
                 if !hasHandledConversion {
                     let isOrganic = UserDefaults.standard.bool(forKey: "is_organic_conversion")
                     if isOrganic {
