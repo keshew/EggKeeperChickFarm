@@ -1153,49 +1153,29 @@ extension LoadingView {
                 return
             }
             
-            // Ваша конверсия жёстко задана здесь
-            let conversionData: [String: Any?] = [
-                "adset": "s1s3",
-                "af_adset": "mm3",
-                "adgroup": "s1s3",
-                "campaign_id": "6068535534218",
-                "af_status": "Non-organic",
-                "agency": "Test",
-                "af_sub3": nil,
-                "af_siteid": nil,
-                "adset_id": "6073532011618",
-                "is_fb": true,
-                "is_first_launch": true,
-                "click_time": "2017-07-18 12:55:05",
-                "iscache": false,
-                "ad_id": "6074245540018",
-                "af_sub1": "439223",
-                "campaign": "Comp_22_GRTRMiOS_111123212_US_iOS_GSLTS_wafb unlim access",
-                "is_paid": true,
-                "af_sub4": "01",
-                "adgroup_id": "6073532011418",
-                "is_mobile_data_terms_signed": true,
-                "af_channel": "Facebook",
-                "af_sub5": nil,
-                "media_source": "Facebook Ads",
-                "install_time": "2017-07-19 08:06:56.189",
-                "af_sub2": nil
-            ]
-            
-            // Убираем все операции с UserDefaults по конверсии и сразу используем conversionData
-            
-            // Удалим проверку на JSONSerialization.isValidJSONObject,
-            // так как в словаре есть nil, заменить их на NSNull()
-            var sanitizedConversionData = [String: Any]()
-            for (key, value) in conversionData {
-                if let value = value {
-                    sanitizedConversionData[key] = value
-                } else {
-                    sanitizedConversionData[key] = NSNull()
+            guard let conversionDataJson = UserDefaults.standard.data(forKey: "conversion_data") else {
+                print("Conversion data not found in UserDefaults")
+                DispatchQueue.main.async {
+                    UserDefaults.standard.set(true, forKey: configNoMoreRequestsKey)
+                    UserDefaults.standard.synchronize()
+                    finishLoadingWithoutWebview()
                 }
+                return
             }
-
-            guard JSONSerialization.isValidJSONObject(sanitizedConversionData) else {
+            
+            guard let conversionData = try? JSONSerialization.jsonObject(with: conversionDataJson) as? [String: Any] else {
+                print("Failed to deserialize conversion data")
+                DispatchQueue.main.async {
+                    UserDefaults.standard.set(true, forKey: configNoMoreRequestsKey)
+                    UserDefaults.standard.synchronize()
+                    finishLoadingWithoutWebview()
+                }
+                return
+            }
+            
+            let requestBody = conversionData
+            
+            guard JSONSerialization.isValidJSONObject(requestBody) else {
                 print("Conversion data is not a valid JSON object")
                 DispatchQueue.main.async {
                     UserDefaults.standard.set(true, forKey: configNoMoreRequestsKey)
@@ -1206,7 +1186,7 @@ extension LoadingView {
             }
             
             do {
-                let jsonData = try JSONSerialization.data(withJSONObject: sanitizedConversionData, options: [])
+                let jsonData = try JSONSerialization.data(withJSONObject: requestBody, options: [])
                 let url = URL(string: "https://eggkeeperchickfarm.com/config.php")!
                 var request = URLRequest(url: url)
                 request.httpMethod = "POST"
