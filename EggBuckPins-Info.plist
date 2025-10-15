@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>bankid</string>
+		<string>phoneme</string>
+		<string>paytmmp</string>
+	</array>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app requires access to the microphone to record audio.</string>
 	<key>NSCameraUsageDescription</key>
