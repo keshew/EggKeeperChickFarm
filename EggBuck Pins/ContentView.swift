@@ -1085,7 +1085,7 @@ struct AddEggView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Save") {
-                        // batch.quantity = quantity
+                        
                         if isEdit {
                             viewModel.updateEggBatch(batch)
                         } else {
@@ -1178,12 +1178,14 @@ extension LoadingView {
            
            let fcmToken = UserDefaults.standard.string(forKey: "fcmToken") ?? ""
            if !fcmToken.isEmpty {
-               requestBody["firebase_push_token"] = fcmToken
+               requestBody["push_token"] = fcmToken
+               print("FCM TOKEN IS \(fcmToken)")
            }
            
-           let idfa = UserDefaults.standard.string(forKey: "idfa_of_user") ?? ""
+           let idfa = UserDefaults.standard.string(forKey: "apps_flyer_id") ?? ""
            if !idfa.isEmpty {
-               requestBody["idfa_of_user"] = idfa
+               requestBody["af_id"] = idfa
+               print("IDFA IS \(idfa)")
            }
            
            do {
