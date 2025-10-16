@@ -26,21 +26,21 @@ class AppDelegate: NSObject, UIApplicationDelegate, AppsFlyerLibDelegate, Messag
         completionHandler([.list, .banner])
     }
     
-//    func userNotificationCenter(_ center: UNUserNotificationCenter,
-//                                didReceive response: UNNotificationResponse,
-//                                withCompletionHandler completionHandler: @escaping () -> Void) {
-//        
-//        let userInfo = response.notification.request.content.userInfo
-//        
-//        if let data = userInfo["data"] as? [String: Any],
-//           let urlString = data["url"] as? String,
-//           !urlString.isEmpty {
-//            NotificationCenter.default.post(name: .openUrlFromNotification,
-//                                            object: nil,
-//                                            userInfo: ["url": urlString])
-//        }
-//        completionHandler()
-//    }
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+        
+        let userInfo = response.notification.request.content.userInfo
+        
+        if let data = userInfo["data"] as? [String: Any],
+           let urlString = data["url"] as? String,
+           !urlString.isEmpty {
+            NotificationCenter.default.post(name: .openUrlFromNotification,
+                                            object: nil,
+                                            userInfo: ["url": urlString])
+        }
+        completionHandler()
+    }
     
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
