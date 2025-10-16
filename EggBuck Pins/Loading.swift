@@ -95,7 +95,7 @@ struct LoadingView: View {
                 if !hasHandledConversion {
                     let isOrganic = UserDefaults.standard.bool(forKey: "is_organic_conversion")
                     if isOrganic {
-                        checkNotificationAuthorization()
+                        isMain = true
                     } else {
                         checkNotificationAuthorization()
                     }
