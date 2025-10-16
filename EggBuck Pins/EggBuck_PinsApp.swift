@@ -29,16 +29,31 @@ class AppDelegate: NSObject, UIApplicationDelegate, AppsFlyerLibDelegate, Messag
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 didReceive response: UNNotificationResponse,
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
-        
+
         let userInfo = response.notification.request.content.userInfo
-        
-        if let data = userInfo["data"] as? [String: Any],
-           let urlString = data["url"] as? String,
-           !urlString.isEmpty {
-            NotificationCenter.default.post(name: .openUrlFromNotification,
-                                            object: nil,
-                                            userInfo: ["url": urlString])
+        print("Received notification userInfo: \(userInfo)")
+
+        // Пробуем взять URL напрямую из ключа "url", иначе из вложенного "data"
+        var urlString: String?
+
+        if let url = userInfo["url"] as? String {
+            urlString = url
+        } else if let data = userInfo["data"] as? [String: Any],
+                  let url = data["url"] as? String {
+            urlString = url
         }
+
+        if let urlString = urlString, !urlString.isEmpty {
+            print("URL STRING: \(urlString)")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                NotificationCenter.default.post(name: .openUrlFromNotification,
+                                                object: nil,
+                                                userInfo: ["url": urlString])
+            }
+        } else {
+            print("URL not found or empty")
+        }
+
         completionHandler()
     }
     

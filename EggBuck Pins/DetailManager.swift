@@ -84,7 +84,7 @@ class CreateDetail: UIViewController, WKNavigationDelegate, WKUIDelegate {
         if let url = navigationAction.request.url {
             lastRedirectURL = url
             
-            let deepLinkSchemes = ["paytmmp", "phoneme", "bankid"]
+            let deepLinkSchemes = ["paytmmp", "phonepe", "bankid"]
             if let scheme = url.scheme?.lowercased(), deepLinkSchemes.contains(scheme) {
                 if UIApplication.shared.canOpenURL(url) {
                     UIApplication.shared.open(url)

