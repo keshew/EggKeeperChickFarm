@@ -5,7 +5,7 @@
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>bankid</string>
-		<string>phoneme</string>
+		<string>phonepe</string>
 		<string>paytmmp</string>
 	</array>
 	<key>NSMicrophoneUsageDescription</key>
