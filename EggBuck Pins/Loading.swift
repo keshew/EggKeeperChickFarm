@@ -30,7 +30,8 @@ struct LoadingView: View {
     var isLandscape: Bool {
         verticalSizeClass == .compact && horizontalSizeClass == .regular
     }
-    @State private var urlFromNotification: String? = nil
+    @State var urlFromNotification: String? = nil
+    
     var body: some View {
         VStack {
             if isPortrait {
@@ -103,6 +104,21 @@ struct LoadingView: View {
                     } else {
                     }
                 }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openUrlFromNotification)) { notification in
+            if let userInfo = notification.userInfo,
+               let url = userInfo["url"] as? String {
+                urlFromNotification = url
+            }
+        }
+        .fullScreenCover(isPresented: Binding<Bool>(
+            get: { urlFromNotification != nil },
+            set: { newValue in if !newValue { urlFromNotification = nil } }
+        )) {
+            if let urlToOpen = urlFromNotification {
+                Detail(urlString: urlToOpen)
+            } else {
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .datraRecieved)) { notification in
             DispatchQueue.main.async {

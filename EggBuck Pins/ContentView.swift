@@ -1239,6 +1239,9 @@ extension LoadingView {
             UserDefaults.standard.removeObject(forKey: configNoMoreRequestsKey)
             UserDefaults.standard.synchronize()
             
+            guard urlFromNotification == nil else {
+                return
+            }
             self.url = URLModel(urlString: url)
             print("Config saved: url = \(url), expires = \(expires)")
             

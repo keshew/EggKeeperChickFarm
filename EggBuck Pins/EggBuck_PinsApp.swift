@@ -31,9 +31,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, AppsFlyerLibDelegate, Messag
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
 
         let userInfo = response.notification.request.content.userInfo
-        print("Received notification userInfo: \(userInfo)")
 
-        // Пробуем взять URL напрямую из ключа "url", иначе из вложенного "data"
         var urlString: String?
 
         if let url = userInfo["url"] as? String {
