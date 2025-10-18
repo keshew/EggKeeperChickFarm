@@ -52,6 +52,7 @@ struct NotificationView: View {
                             }
                             
                             Button(action:{
+                                saveDeniedDate()
                                 presentationMode.wrappedValue.dismiss()
                                 NotificationCenter.default.post(name: .notificationPermissionResult, object: nil, userInfo: ["granted": true])
                             }) {
@@ -135,7 +136,6 @@ struct NotificationView: View {
                     }
                 }
             case .denied:
-                saveDeniedDate()
                 presentationMode.wrappedValue.dismiss()
             case .authorized, .provisional, .ephemeral:
                 print("razresheni")
@@ -147,6 +147,7 @@ struct NotificationView: View {
     
     private func saveDeniedDate() {
         UserDefaults.standard.set(Date(), forKey: lastDeniedKey)
+        print("Saved last denied date: \(Date())")
     }
 }
 
